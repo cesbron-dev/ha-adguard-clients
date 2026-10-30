@@ -6,7 +6,7 @@ from typing import Any
 
 import voluptuous as vol
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
-from homeassistant.exceptions import ServiceValidationError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import config_validation as cv, device_registry as dr
 
 from .client_ops import blocked, with_blocked
@@ -18,8 +18,8 @@ SERVICE_SET_BLOCKED_SERVICES = "set_blocked_services"
 SET_BLOCKED_SERVICES_SCHEMA = vol.Schema(
     {
         vol.Required("device_id"): cv.string,
-        vol.Optional("block", default=[]): [cv.string],
-        vol.Optional("unblock", default=[]): [cv.string],
+        vol.Optional("block", default=[]): vol.All(cv.ensure_list, [cv.string]),
+        vol.Optional("unblock", default=[]): vol.All(cv.ensure_list, [cv.string]),
     }
 )
 
@@ -57,7 +57,8 @@ async def _set_blocked_services(call: ServiceCall) -> dict[str, Any]:
             translation_key="conflicting_services",
             translation_placeholders={"services": ", ".join(sorted(conflict))},
         )
-    if unknown := (block | unblock) - set(coordinator.catalog):
+    # seul `block` doit viser le catalogue : débloquer un service retiré est permis
+    if unknown := block - set(coordinator.catalog):
         raise ServiceValidationError(
             translation_domain=DOMAIN,
             translation_key="unknown_service",
@@ -71,9 +72,21 @@ async def _set_blocked_services(call: ServiceCall) -> dict[str, Any]:
         written[:] = new["blocked_services"]
         return new
 
-    await coordinator.async_update_client(uid, mutate)
+    try:
+        await coordinator.async_update_client(uid, mutate)
+    except HomeAssistantError as err:
+        if err.translation_key == "client_not_found":
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="client_not_found"
+            ) from err
+        raise
 
-    fiche = coordinator.data.clients.get(uid) if coordinator.data else None
+    # relecture en échec : coordinator.data contient encore la fiche d'avant l'écriture
+    fiche = (
+        coordinator.data.clients.get(uid)
+        if coordinator.last_update_success and coordinator.data
+        else None
+    )
     result = sorted(blocked(fiche)) if fiche is not None else list(written)
     return {"blocked_services": result}
 

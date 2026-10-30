@@ -90,3 +90,49 @@ async def test_service_client_gone(hass, patch_api, fake_adguard) -> None:
     with pytest.raises(HomeAssistantError) as err:
         await _call(hass, dev_id, block=["youtube"])
     assert err.value.translation_key == "client_not_found"
+
+
+async def test_service_response_when_refresh_fails_after_write(
+    hass, patch_api, fake_adguard
+) -> None:
+    from custom_components.adguard_clients.api import AdGuardConnectionError
+
+    _, _, dev_id = await _ctx(hass)
+    original = fake_adguard.update_client
+
+    async def update_then_break(name, data):
+        await original(name, data)
+        fake_adguard.fail_on["clients"] = AdGuardConnectionError("down")
+
+    fake_adguard.update_client = update_then_break
+    resp = await _call(hass, dev_id, block=["youtube"])
+    assert fake_adguard.clients[0]["blocked_services"] == ["youtube"]
+    assert resp == {"blocked_services": ["youtube"]}
+
+
+async def test_service_client_gone_is_validation_error(
+    hass, patch_api, fake_adguard
+) -> None:
+    _, _, dev_id = await _ctx(hass)
+    fake_adguard.clients.pop(0)
+    with pytest.raises(HomeAssistantError) as err:
+        await _call(hass, dev_id, block=["youtube"])
+    assert type(err.value) is ServiceValidationError
+    assert err.value.translation_key == "client_not_found"
+
+
+async def test_service_accepts_single_string(hass, patch_api, fake_adguard) -> None:
+    fake_adguard.clients[0]["blocked_services"] = ["tiktok"]
+    _, _, dev_id = await _ctx(hass)
+    resp = await _call(hass, dev_id, block="youtube", unblock="tiktok")
+    assert resp == {"blocked_services": ["youtube"]}
+
+
+async def test_service_unblock_id_absent_from_catalog(
+    hass, patch_api, fake_adguard
+) -> None:
+    fake_adguard.clients[0]["blocked_services"] = ["retired", "youtube"]
+    _, _, dev_id = await _ctx(hass)
+    resp = await _call(hass, dev_id, unblock=["retired"])
+    assert fake_adguard.clients[0]["blocked_services"] == ["youtube"]
+    assert resp == {"blocked_services": ["youtube"]}
