@@ -50,5 +50,40 @@
     "write_failed": {
       "message": "Échec de l'écriture dans AdGuard Home"
     }
+  },
+  "entity": {
+    "switch": {
+      "filtering": {
+        "name": "Filtrage"
+      },
+      "parental": {
+        "name": "Contrôle parental"
+      },
+      "safebrowsing": {
+        "name": "Navigation sécurisée"
+      },
+      "safe_search": {
+        "name": "Recherche sécurisée"
+      },
+      "use_global_settings": {
+        "name": "Utiliser les réglages globaux"
+      },
+      "use_global_blocked_services": {
+        "name": "Utiliser les services bloqués globaux"
+      },
+      "blocked_service": {
+        "name": "Bloquer {service}"
+      }
+    },
+    "sensor": {
+      "blocked_services": {
+        "name": "Services bloqués"
+      }
+    },
+    "binary_sensor": {
+      "connected": {
+        "name": "Connecté"
+      }
+    }
   }
 }

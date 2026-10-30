@@ -50,5 +50,40 @@
     "write_failed": {
       "message": "Failed to write to AdGuard Home"
     }
+  },
+  "entity": {
+    "switch": {
+      "filtering": {
+        "name": "Filtering"
+      },
+      "parental": {
+        "name": "Parental control"
+      },
+      "safebrowsing": {
+        "name": "Safe browsing"
+      },
+      "safe_search": {
+        "name": "Safe search"
+      },
+      "use_global_settings": {
+        "name": "Use global settings"
+      },
+      "use_global_blocked_services": {
+        "name": "Use global blocked services"
+      },
+      "blocked_service": {
+        "name": "Block {service}"
+      }
+    },
+    "sensor": {
+      "blocked_services": {
+        "name": "Blocked services"
+      }
+    },
+    "binary_sensor": {
+      "connected": {
+        "name": "Connected"
+      }
+    }
   }
 }

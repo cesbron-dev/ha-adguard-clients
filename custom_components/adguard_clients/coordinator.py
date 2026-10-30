@@ -22,7 +22,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .api import AdGuardApi, AdGuardAuthError, AdGuardError
 from .client_ops import client_ids
-from .const import DOMAIN
+from .const import DEFAULT_SERVICES, DOMAIN
 from .matching import KnownClient, match_clients
 
 _LOGGER = logging.getLogger(__name__)
@@ -61,6 +61,11 @@ class AdGuardClientsCoordinator(DataUpdateCoordinator[AdGuardData]):
             hass, 1, f"{DOMAIN}.{entry.entry_id}"
         )
         self._write_lock = asyncio.Lock()
+
+    @property
+    def services(self) -> list[str]:
+        """Services proposés en switches (provisoire : défauts présents au catalogue)."""
+        return [s for s in DEFAULT_SERVICES if s in self.catalog]
 
     def client_device_identifier(self, uid: str) -> tuple[str, str]:
         """Identifiant d'appareil d'un client."""
