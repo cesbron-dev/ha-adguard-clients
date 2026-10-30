@@ -49,6 +49,15 @@
     },
     "write_failed": {
       "message": "Failed to write to AdGuard Home"
+    },
+    "invalid_device": {
+      "message": "Invalid AdGuard Clients device"
+    },
+    "unknown_service": {
+      "message": "Unknown services: {services}"
+    },
+    "conflicting_services": {
+      "message": "Services both blocked and unblocked: {services}"
     }
   },
   "entity": {
@@ -98,6 +107,26 @@
     },
     "abort": {
       "not_loaded": "The integration must be loaded to change its options"
+    }
+  },
+  "services": {
+    "set_blocked_services": {
+      "name": "Set blocked services",
+      "description": "Block or unblock services for an AdGuard client in a single write.",
+      "fields": {
+        "device_id": {
+          "name": "Client",
+          "description": "The AdGuard Clients device to modify."
+        },
+        "block": {
+          "name": "Services to block",
+          "description": "IDs of services to block (e.g. youtube)."
+        },
+        "unblock": {
+          "name": "Services to unblock",
+          "description": "IDs of services to unblock."
+        }
+      }
     }
   }
 }
