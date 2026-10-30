@@ -88,3 +88,19 @@ def test_nameless_entries_ignored() -> None:
     assert match_clients({}, [{"ids": ["x"]}, {"name": "", "ids": ["y"]}, a], gen()) == {
         "n1": a
     }
+
+
+def test_deleted_client_ids_reused_by_new_client_creates_new() -> None:
+    known = {"u1": KnownClient("A", frozenset({"1", "mac"}), present=False)}
+    tom = c("Tom", ["1"])
+    assert match_clients(known, [tom], gen()) == {"n1": tom}
+
+
+def test_absent_client_reappearing_with_same_name_keeps_uid() -> None:
+    known = {"u1": KnownClient("A", frozenset({"1"}), present=False)}
+    a = c("A", ["9"])
+    assert match_clients(known, [a], gen()) == {"u1": a}
+
+
+def test_known_client_present_by_default() -> None:
+    assert KnownClient("A", frozenset({"1"})).present is True

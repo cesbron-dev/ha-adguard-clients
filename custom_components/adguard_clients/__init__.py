@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import config_validation as cv, device_registry as dr
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.storage import Store
 from homeassistant.helpers.typing import ConfigType
 
 from .api import AdGuardApi, AdGuardAuthError, AdGuardError
@@ -53,7 +54,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: AdGuardConfigEntry) -> b
     await coordinator.async_config_entry_first_refresh()
     entry.runtime_data = coordinator
 
-    dr.async_get(hass).async_get_or_create(
+    hub = dr.async_get(hass).async_get_or_create(
         config_entry_id=entry.entry_id,
         identifiers={(DOMAIN, entry.entry_id)},
         name=entry.title,
@@ -61,6 +62,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: AdGuardConfigEntry) -> b
         sw_version=status.get("version"),
         configuration_url=entry.data[CONF_URL],
     )
+    coordinator.hub_device_id = hub.id
 
     @callback
     def _sync_device_names() -> None:
@@ -91,12 +93,27 @@ async def async_unload_entry(hass: HomeAssistant, entry: AdGuardConfigEntry) -> 
 async def async_remove_config_entry_device(
     hass: HomeAssistant, entry: AdGuardConfigEntry, device: dr.DeviceEntry
 ) -> bool:
-    """Autorise la suppression d'un client absent d'AdGuard (jamais l'instance)."""
+    """Autorise la suppression d'un client absent d'AdGuard (jamais l'instance).
+
+    Le client supprimé est aussi oublié (`known` et stockage).
+    """
+    if entry.state is not ConfigEntryState.LOADED:
+        return False
     coordinator = entry.runtime_data
-    return any(
-        ident[0] == DOMAIN
-        and ident[1] != entry.entry_id
-        and ident[1].startswith(f"{entry.entry_id}_")
-        and ident[1].removeprefix(f"{entry.entry_id}_") not in coordinator.data.clients
+    prefix = f"{entry.entry_id}_"
+    uids = [
+        ident[1].removeprefix(prefix)
         for ident in device.identifiers
-    )
+        if ident[0] == DOMAIN and ident[1].startswith(prefix)
+    ]
+    absent = [uid for uid in uids if uid and uid not in coordinator.data.clients]
+    if not absent:
+        return False
+    for uid in absent:
+        await coordinator.async_forget(uid)
+    return True
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: AdGuardConfigEntry) -> None:
+    """Supprime l'identité persistée des clients de l'instance."""
+    await Store(hass, 1, f"{DOMAIN}.{entry.entry_id}").async_remove()
