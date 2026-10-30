@@ -1,0 +1,43 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Ajouter une instance AdGuard Home",
+        "data": {
+          "name": "Nom de l'instance",
+          "url": "URL",
+          "username": "Nom d'utilisateur",
+          "password": "Mot de passe",
+          "verify_ssl": "Vérifier le certificat"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Ré-authentification",
+        "description": "Saisissez de nouveaux identifiants pour AdGuard Home.",
+        "data": {
+          "username": "Nom d'utilisateur",
+          "password": "Mot de passe"
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigurer AdGuard Home",
+        "data": {
+          "url": "URL",
+          "username": "Nom d'utilisateur",
+          "password": "Mot de passe",
+          "verify_ssl": "Vérifier le certificat"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossible de se connecter à AdGuard Home",
+      "invalid_auth": "Identifiants invalides",
+      "unknown": "Erreur inattendue"
+    },
+    "abort": {
+      "already_configured": "Cette instance AdGuard Home est déjà configurée",
+      "reauth_successful": "Ré-authentification réussie",
+      "reconfigure_successful": "Reconfiguration réussie"
+    }
+  }
+}

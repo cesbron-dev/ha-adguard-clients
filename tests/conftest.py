@@ -41,7 +41,6 @@ def patch_api(fake_adguard):
         patch(
             "custom_components.adguard_clients.config_flow.AdGuardApi",
             return_value=fake_adguard,
-            create=True,
         ),
     ):
         yield fake_adguard
