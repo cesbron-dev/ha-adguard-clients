@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -52,6 +52,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: AdGuardConfigEntry) -> b
         configuration_url=entry.data[CONF_URL],
     )
 
+    @callback
+    def _sync_device_names() -> None:
+        """Fait suivre aux appareils les renommages faits dans AdGuard."""
+        registry = dr.async_get(hass)
+        for uid, fiche in coordinator.data.clients.items():
+            device = registry.async_get_device_by_identifier(
+                coordinator.client_device_identifier(uid), entry.entry_id
+            )
+            if device is not None and device.name != fiche.get("name"):
+                registry.async_update_device(device.id, name=fiche.get("name"))
+
+    entry.async_on_unload(coordinator.async_add_listener(_sync_device_names))
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(_async_reload))
     return True
@@ -64,3 +76,17 @@ async def _async_reload(hass: HomeAssistant, entry: AdGuardConfigEntry) -> None:
 async def async_unload_entry(hass: HomeAssistant, entry: AdGuardConfigEntry) -> bool:
     """Décharge une instance."""
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, entry: AdGuardConfigEntry, device: dr.DeviceEntry
+) -> bool:
+    """Autorise la suppression d'un client absent d'AdGuard (jamais l'instance)."""
+    coordinator = entry.runtime_data
+    return any(
+        ident[0] == DOMAIN
+        and ident[1] != entry.entry_id
+        and ident[1].startswith(f"{entry.entry_id}_")
+        and ident[1].removeprefix(f"{entry.entry_id}_") not in coordinator.data.clients
+        for ident in device.identifiers
+    )
