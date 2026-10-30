@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import timedelta
 import logging
 from typing import Any
@@ -60,6 +60,7 @@ class AdGuardClientsCoordinator(DataUpdateCoordinator[AdGuardData]):
         self._store: Store[dict[str, Any]] = Store(
             hass, 1, f"{DOMAIN}.{entry.entry_id}"
         )
+        self.hub_device_id: str | None = None
         self._write_lock = asyncio.Lock()
         self._warned_unknown: set[str] = set()
 
@@ -85,7 +86,9 @@ class AdGuardClientsCoordinator(DataUpdateCoordinator[AdGuardData]):
         stored = await self._store.async_load()
         if stored:
             self.known = {
-                uid: KnownClient(item["name"], frozenset(item["ids"]))
+                uid: KnownClient(
+                    item["name"], frozenset(item["ids"]), item.get("present", True)
+                )
                 for uid, item in stored.get("clients", {}).items()
             }
         try:
@@ -105,16 +108,29 @@ class AdGuardClientsCoordinator(DataUpdateCoordinator[AdGuardData]):
             if self.known.get(uid) != new:
                 self.known[uid] = new
                 changed = True
+        for uid, k in list(self.known.items()):
+            if uid not in matched and k.present:
+                self.known[uid] = replace(k, present=False)
+                changed = True
         if changed:
-            await self._store.async_save(
-                {
-                    "clients": {
-                        uid: {"name": k.name, "ids": sorted(k.ids)}
-                        for uid, k in self.known.items()
-                    }
-                }
-            )
+            await self.async_save_known()
         return matched
+
+    async def async_save_known(self) -> None:
+        """Persiste `known`."""
+        await self._store.async_save(
+            {
+                "clients": {
+                    uid: {"name": k.name, "ids": sorted(k.ids), "present": k.present}
+                    for uid, k in self.known.items()
+                }
+            }
+        )
+
+    async def async_forget(self, uid: str) -> None:
+        """Oublie un client (appareil supprimé) et persiste."""
+        if self.known.pop(uid, None) is not None:
+            await self.async_save_known()
 
     async def _async_update_data(self) -> AdGuardData:
         try:

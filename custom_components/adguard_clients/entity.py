@@ -7,7 +7,6 @@ from typing import Any
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN
 from .coordinator import AdGuardClientsCoordinator
 
 
@@ -31,7 +30,7 @@ class AdGuardClientEntity(CoordinatorEntity[AdGuardClientsCoordinator]):
             name=name,
             manufacturer="AdGuard Home",
             model="Client",
-            via_device=(DOMAIN, entry_id),
+            via_device_id=coordinator.hub_device_id,
         )
 
     @property

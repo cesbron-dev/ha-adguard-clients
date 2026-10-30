@@ -220,3 +220,9 @@ async def test_write_failure_raises_and_state_unchanged(hass, patch_api, fake_ad
     with pytest.raises(HomeAssistantError):
         await _call(hass, "turn_on", eid)
     assert hass.states.get(eid).state == "off"
+
+
+async def test_client_devices_no_deprecation_warning(hass, patch_api, caplog) -> None:
+    await _setup(hass)
+    assert "deprecated" not in caplog.text
+    assert "via_device_id instead" not in caplog.text

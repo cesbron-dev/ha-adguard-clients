@@ -190,3 +190,130 @@ async def test_setup_catalog_failure_not_ready(hass, patch_api, fake_adguard) ->
     fake_adguard.fail_on["services_catalog"] = AdGuardConnectionError("down")
     entry = await _setup(hass)
     assert entry.state is ConfigEntryState.SETUP_RETRY
+
+
+async def test_deleted_client_ids_reused_gets_new_device(
+    hass, patch_api, fake_adguard, hass_storage
+) -> None:
+    from .fake_adguard import sample_client
+
+    entry = await _setup(hass)
+    coordinator = entry.runtime_data
+    tv = _uid_of(coordinator, "TV")
+    fake_adguard.clients.pop(1)
+    await coordinator.async_refresh()
+    assert coordinator.known[tv].present is False
+    stored = hass_storage[f"adguard_clients.{entry.entry_id}"]["data"]["clients"]
+    assert stored[tv]["present"] is False
+    fake_adguard.clients.append(sample_client("Tom", ["192.168.0.60"]))
+    await coordinator.async_refresh()
+    tom = _uid_of(coordinator, "Tom")
+    assert tom != tv
+    assert coordinator.known[tom].present is True
+    assert coordinator.known[tv].present is False
+
+
+async def test_known_without_present_defaults_true(hass, patch_api, hass_storage) -> None:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="AdGuard Bordeaux",
+        data={"url": URL, "username": "admin", "password": "x", "verify_ssl": True},
+        unique_id=URL,
+    )
+    hass_storage[f"adguard_clients.{entry.entry_id}"] = {
+        "version": 1,
+        "key": f"adguard_clients.{entry.entry_id}",
+        "data": {"clients": {"old": {"name": "Ancien", "ids": ["192.168.0.60"]}}},
+    }
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    coordinator = entry.runtime_data
+    # renommage TV -> présent supposé à la dernière lecture : même uid
+    assert coordinator.data.clients["old"]["name"] == "TV"
+
+
+async def test_remove_device_purges_known_and_store(
+    hass, patch_api, fake_adguard, hass_storage
+) -> None:
+    from custom_components.adguard_clients import async_remove_config_entry_device
+
+    entry = await _setup(hass)
+    coordinator = entry.runtime_data
+    tv = _uid_of(coordinator, "TV")
+    fake_adguard.clients.pop(1)
+    await coordinator.async_refresh()
+    device = dr.async_get(hass).async_get_device_by_identifier(
+        coordinator.client_device_identifier(tv), entry.entry_id
+    )
+    assert await async_remove_config_entry_device(hass, entry, device) is True
+    assert tv not in coordinator.known
+    stored = hass_storage[f"adguard_clients.{entry.entry_id}"]["data"]["clients"]
+    assert tv not in stored
+
+
+async def test_remove_device_refused_when_not_loaded(
+    hass, patch_api, fake_adguard
+) -> None:
+    from custom_components.adguard_clients import async_remove_config_entry_device
+
+    entry = await _setup(hass)
+    coordinator = entry.runtime_data
+    tv = _uid_of(coordinator, "TV")
+    fake_adguard.clients.pop(1)
+    await coordinator.async_refresh()
+    device = dr.async_get(hass).async_get_device_by_identifier(
+        coordinator.client_device_identifier(tv), entry.entry_id
+    )
+    await hass.config_entries.async_unload(entry.entry_id)
+    await hass.async_block_till_done()
+    assert entry.state is ConfigEntryState.NOT_LOADED
+    assert await async_remove_config_entry_device(hass, entry, device) is False
+
+
+async def test_remove_entry_deletes_store(hass, patch_api, hass_storage) -> None:
+    entry = await _setup(hass)
+    key = f"adguard_clients.{entry.entry_id}"
+    assert key in hass_storage
+    await hass.config_entries.async_remove(entry.entry_id)
+    await hass.async_block_till_done()
+    assert key not in hass_storage
+
+
+async def test_stale_refresh_does_not_overwrite_write(
+    hass, patch_api, fake_adguard
+) -> None:
+    entry = await _setup(hass)
+    coordinator = entry.runtime_data
+    uid = _uid_of(coordinator, "TV")
+    original = coordinator.api
+    gate = asyncio.Event()
+    reading = asyncio.Event()
+
+    class Gated:
+        armed = True
+
+        def __getattr__(self, name):
+            return getattr(original, name)
+
+        async def clients(self):
+            snapshot = await original.clients()
+            if Gated.armed:
+                Gated.armed = False
+                reading.set()
+                await gate.wait()
+            return snapshot
+
+    coordinator.api = Gated()
+    # rafraîchissement planifié, bloqué après avoir lu l'état d'avant l'écriture
+    refresh = hass.async_create_task(coordinator._handle_refresh_interval())
+    await reading.wait()
+    write = hass.async_create_task(
+        coordinator.async_update_client(uid, lambda c: {**c, "ignore_querylog": True})
+    )
+    for _ in range(10):
+        await asyncio.sleep(0)
+    gate.set()
+    await asyncio.gather(refresh, write)
+    assert fake_adguard.clients[1]["ignore_querylog"] is True
+    assert coordinator.data.clients[uid]["ignore_querylog"] is True

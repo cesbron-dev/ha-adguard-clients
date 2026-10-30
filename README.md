@@ -120,7 +120,9 @@ response_variable: resultat
   conservés) puis relit. Les écritures d'une instance sont sérialisées.
 - Un changement fait dans l'interface d'AdGuard apparaît au prochain rafraîchissement.
 - **Renommage** : renommer un client dans AdGuard garde son appareil et ses `entity_id` ; seul
-  le nom de l'appareil suit. Le rapprochement se fait par nom, puis par identifiants communs.
+  le nom de l'appareil suit. Le rapprochement se fait par nom, puis par identifiants communs
+  avec un client présent à la lecture précédente (un nouveau client qui reprend l'IP d'un
+  client supprimé obtient donc son propre appareil).
   En cas de doute, un nouvel appareil est créé plutôt que de réutiliser celui d'un autre.
 - Un client supprimé d'AdGuard rend ses entités indisponibles ; l'appareil se supprime à la main.
 - Les nouveaux clients apparaissent au rafraîchissement suivant.

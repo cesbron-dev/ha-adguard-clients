@@ -150,7 +150,8 @@ d'un enfant à l'appareil d'un autre) :
 1. `uid` AdGuard s'il existe → correspondance directe.
 2. Sinon **nom identique** à un `uid` connu (actif ou absent) → même appareil. Un client
    absent qui réapparaît sous le même nom reprend donc son appareil.
-3. Sinon, parmi les `uid` connus **non rapprochés** à cette étape : si exactement **un**
+3. Sinon, parmi les `uid` connus non rapprochés **et présents à la dernière lecture réussie**
+   (jamais un client supprimé depuis, même si un nouveau client reprend son IP) : si exactement **un**
    `uid` partage au moins un identifiant avec ce client, et que ce `uid` ne partage
    d'identifiant avec **aucun autre** client non rapproché → renommage, même appareil.
 4. Sinon → nouveau `uid`, nouvel appareil (un renommage accompagné d'un changement de tous
