@@ -14,7 +14,6 @@ DEFAULT_SERVICES: tuple[str, ...] = (
     "netflix",
     "disneyplus",
     "twitch",
-    "discord",
 )
 DEFAULT_SCAN_INTERVAL = 30
 MIN_SCAN_INTERVAL = 10
