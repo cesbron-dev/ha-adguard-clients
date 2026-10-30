@@ -7,17 +7,40 @@ from collections.abc import Mapping
 from typing import Any
 
 import voluptuous as vol
-from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigEntryState,
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlow,
+)
+from homeassistant.core import callback
 from homeassistant.const import CONF_NAME, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import (
+    NumberSelector,
+    NumberSelectorConfig,
+    NumberSelectorMode,
+    SelectOptionDict,
+    SelectSelector,
+    SelectSelectorConfig,
     TextSelector,
     TextSelectorConfig,
     TextSelectorType,
 )
 
 from .api import AdGuardApi, AdGuardAuthError, AdGuardConnectionError, normalize_url
-from .const import CONF_URL, CONF_VERIFY_SSL, DOMAIN
+from .const import (
+    CONF_SCAN_INTERVAL,
+    CONF_SERVICES,
+    CONF_URL,
+    CONF_VERIFY_SSL,
+    DEFAULT_SCAN_INTERVAL,
+    DEFAULT_SERVICES,
+    DOMAIN,
+    MAX_SCAN_INTERVAL,
+    MIN_SCAN_INTERVAL,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -49,6 +72,11 @@ class AdGuardClientsConfigFlow(ConfigFlow, domain=DOMAIN):
     """Création, ré-authentification et reconfiguration."""
 
     VERSION = 1
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
+        return AdGuardClientsOptionsFlow()
 
     async def _test(
         self, url: str, username: str, password: str, verify_ssl: bool
@@ -165,3 +193,55 @@ class AdGuardClientsConfigFlow(ConfigFlow, domain=DOMAIN):
             data_schema=_schema(user_input or entry.data),
             errors=errors,
         )
+
+
+class AdGuardClientsOptionsFlow(OptionsFlow):
+    """Services exposés comme switches et intervalle de rafraîchissement."""
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        entry = self.config_entry
+        if entry.state is not ConfigEntryState.LOADED:
+            return self.async_abort(reason="not_loaded")
+        catalog: dict[str, str] = entry.runtime_data.catalog
+        if user_input is not None:
+            return self.async_create_entry(
+                data={
+                    CONF_SERVICES: list(user_input[CONF_SERVICES]),
+                    CONF_SCAN_INTERVAL: int(user_input[CONF_SCAN_INTERVAL]),
+                }
+            )
+        current = entry.options.get(
+            CONF_SERVICES, [s for s in DEFAULT_SERVICES if s in catalog]
+        )
+        schema = vol.Schema(
+            {
+                vol.Required(
+                    CONF_SERVICES, default=[s for s in current if s in catalog]
+                ): SelectSelector(
+                    SelectSelectorConfig(
+                        options=[
+                            SelectOptionDict(value=sid, label=name)
+                            for sid, name in sorted(
+                                catalog.items(), key=lambda kv: kv[1].casefold()
+                            )
+                        ],
+                        multiple=True,
+                    )
+                ),
+                vol.Required(
+                    CONF_SCAN_INTERVAL,
+                    default=entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+                ): NumberSelector(
+                    NumberSelectorConfig(
+                        min=MIN_SCAN_INTERVAL,
+                        max=MAX_SCAN_INTERVAL,
+                        step=1,
+                        unit_of_measurement="s",
+                        mode=NumberSelectorMode.BOX,
+                    )
+                ),
+            }
+        )
+        return self.async_show_form(step_id="init", data_schema=schema)
