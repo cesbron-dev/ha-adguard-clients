@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import copy
 from typing import Any
 
@@ -49,7 +50,9 @@ class _Clients(list):
 
     async def __call__(self) -> list[dict[str, Any]]:
         self._owner._maybe_fail("clients")
-        return copy.deepcopy(list(self))
+        snapshot = copy.deepcopy(list(self))
+        await asyncio.sleep(0)  # cède la main : expose les courses sans verrou
+        return snapshot
 
 
 class FakeAdGuard:
@@ -92,6 +95,7 @@ class FakeAdGuard:
 
     async def update_client(self, name: str, data: dict[str, Any]) -> None:
         self._maybe_fail("update_client")
+        await asyncio.sleep(0)
         for i, client in enumerate(self.clients):
             if client["name"] == name:
                 self._clients[i] = copy.deepcopy(data)
