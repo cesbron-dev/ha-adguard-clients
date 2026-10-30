@@ -48,7 +48,7 @@ class _Clients(list):
         self._owner = owner
 
     async def __call__(self) -> list[dict[str, Any]]:
-        self._owner._maybe_fail()
+        self._owner._maybe_fail("clients")
         return copy.deepcopy(list(self))
 
 
@@ -64,6 +64,7 @@ class FakeAdGuard:
         self.catalog: dict[str, str] = catalog if catalog is not None else {}
         self.updates: list[tuple[str, dict[str, Any]]] = []
         self.fail_next: Exception | None = None
+        self.fail_on: dict[str, Exception] = {}
 
     @property
     def clients(self) -> _Clients:
@@ -74,21 +75,23 @@ class FakeAdGuard:
     def clients(self, value: list[dict[str, Any]]) -> None:
         self._clients = _Clients(self, value)
 
-    def _maybe_fail(self) -> None:
+    def _maybe_fail(self, method: str) -> None:
+        if method in self.fail_on:
+            raise self.fail_on.pop(method)
         if self.fail_next is not None:
             err, self.fail_next = self.fail_next, None
             raise err
 
     async def status(self) -> dict[str, Any]:
-        self._maybe_fail()
+        self._maybe_fail("status")
         return {"running": True, "version": "v0.107.0"}
 
     async def services_catalog(self) -> dict[str, str]:
-        self._maybe_fail()
+        self._maybe_fail("services_catalog")
         return dict(self.catalog)
 
     async def update_client(self, name: str, data: dict[str, Any]) -> None:
-        self._maybe_fail()
+        self._maybe_fail("update_client")
         for i, client in enumerate(self.clients):
             if client["name"] == name:
                 self._clients[i] = copy.deepcopy(data)

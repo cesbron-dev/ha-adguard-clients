@@ -39,5 +39,16 @@
       "reauth_successful": "Ré-authentification réussie",
       "reconfigure_successful": "Reconfiguration réussie"
     }
+  },
+  "exceptions": {
+    "client_not_found": {
+      "message": "Client AdGuard introuvable"
+    },
+    "auth_failed": {
+      "message": "Authentification AdGuard refusée"
+    },
+    "write_failed": {
+      "message": "Échec de l'écriture dans AdGuard Home"
+    }
   }
 }

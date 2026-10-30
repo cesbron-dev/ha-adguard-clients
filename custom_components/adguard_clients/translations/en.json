@@ -39,5 +39,16 @@
       "reauth_successful": "Re-authentication successful",
       "reconfigure_successful": "Reconfiguration successful"
     }
+  },
+  "exceptions": {
+    "client_not_found": {
+      "message": "Client not found in AdGuard Home"
+    },
+    "auth_failed": {
+      "message": "AdGuard authentication refused"
+    },
+    "write_failed": {
+      "message": "Failed to write to AdGuard Home"
+    }
   }
 }
