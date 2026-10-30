@@ -1,0 +1,12 @@
+{
+  "domain": "adguard_clients",
+  "name": "AdGuard Clients",
+  "version": "0.1.0",
+  "config_flow": true,
+  "iot_class": "local_polling",
+  "integration_type": "hub",
+  "dependencies": [],
+  "requirements": [],
+  "codeowners": ["@cesbron-dev"],
+  "documentation": "https://github.com/cesbron-dev/ha-adguard-clients"
+}
