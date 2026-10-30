@@ -8,6 +8,7 @@ from typing import Any, Literal
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import AdGuardConfigEntry
@@ -35,6 +36,15 @@ async def async_setup_entry(
     """Crée les switches, y compris pour les clients qui apparaissent plus tard."""
     coordinator = entry.runtime_data
     created: set[str] = set()
+
+    registry = er.async_get(hass)
+    kept = set(coordinator.services)
+    prefix = f"{entry.entry_id}_"
+    for ent in er.async_entries_for_config_entry(registry, entry.entry_id):
+        uid = ent.unique_id
+        if ent.domain == "switch" and uid.startswith(prefix) and "_svc_" in uid:
+            if uid.split("_svc_", 1)[1] not in kept:
+                registry.async_remove(ent.entity_id)
 
     @callback
     def _add_new() -> None:

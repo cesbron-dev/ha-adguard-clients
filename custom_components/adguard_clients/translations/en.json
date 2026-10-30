@@ -85,5 +85,19 @@
         "name": "Connected"
       }
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options",
+        "data": {
+          "services": "Services exposed as switches",
+          "scan_interval": "Refresh interval (s)"
+        }
+      }
+    },
+    "abort": {
+      "not_loaded": "The integration must be loaded to change its options"
+    }
   }
 }

@@ -85,5 +85,19 @@
         "name": "Connecté"
       }
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options",
+        "data": {
+          "services": "Services exposés comme switches",
+          "scan_interval": "Intervalle de rafraîchissement (s)"
+        }
+      }
+    },
+    "abort": {
+      "not_loaded": "L'intégration doit être chargée pour modifier ses options"
+    }
   }
 }
