@@ -49,6 +49,15 @@
     },
     "write_failed": {
       "message": "Échec de l'écriture dans AdGuard Home"
+    },
+    "invalid_device": {
+      "message": "Appareil AdGuard Clients invalide"
+    },
+    "unknown_service": {
+      "message": "Services inconnus : {services}"
+    },
+    "conflicting_services": {
+      "message": "Services à la fois bloqués et débloqués : {services}"
     }
   },
   "entity": {
@@ -98,6 +107,26 @@
     },
     "abort": {
       "not_loaded": "L'intégration doit être chargée pour modifier ses options"
+    }
+  },
+  "services": {
+    "set_blocked_services": {
+      "name": "Définir les services bloqués",
+      "description": "Bloque ou débloque des services pour un client AdGuard en une seule écriture.",
+      "fields": {
+        "device_id": {
+          "name": "Client",
+          "description": "L'appareil AdGuard Clients à modifier."
+        },
+        "block": {
+          "name": "Services à bloquer",
+          "description": "Identifiants des services à bloquer (ex. youtube)."
+        },
+        "unblock": {
+          "name": "Services à débloquer",
+          "description": "Identifiants des services à débloquer."
+        }
+      }
     }
   }
 }

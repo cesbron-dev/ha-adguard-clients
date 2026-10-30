@@ -1,0 +1,17 @@
+set_blocked_services:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: adguard_clients
+    block:
+      required: false
+      selector:
+        text:
+          multiple: true
+    unblock:
+      required: false
+      selector:
+        text:
+          multiple: true
