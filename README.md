@@ -1,6 +1,6 @@
 # AdGuard Clients pour Home Assistant
 
-Intégration Home Assistant (HACS) qui expose les **clients persistants** d'une ou plusieurs
+Intégration Home Assistant qui expose les **clients persistants** d'une ou plusieurs
 instances [AdGuard Home](https://github.com/AdguardTeam/AdGuardHome) : un appareil Home
 Assistant par client, avec ses réglages de filtrage et un switch par service bloqué
 (YouTube, Roblox, TikTok…).
@@ -11,7 +11,9 @@ d'un enfant, par exemple), sans toucher au reste de la maison. Elle est testée 
 Home **v0.107.79**.
 
 Elle sert aussi de brique au moteur [`ha-parental-control`](https://github.com/cesbron-dev/ha-parental-control),
-qui utilisera le service `set_blocked_services` pour appliquer ses décisions.
+qui utilise le service `set_blocked_services` pour appliquer ses décisions.
+
+Distribuée sous [licence MIT](LICENSE). Textes de l'interface en français et en anglais.
 
 ## Ce que l'intégration ne fait pas
 
@@ -23,11 +25,14 @@ qui utilisera le service `set_blocked_services` pour appliquer ses décisions.
 - Les horaires de services d'AdGuard (`blocked_services_schedule`) : ils ne sont **jamais
   modifiés** et continuent de s'appliquer. L'intégration n'en tient pas compte.
 
-## Installation (HACS)
+## Installation
 
-1. HACS, menu en haut à droite, **Dépôts personnalisés**.
-2. Dépôt `cesbron-dev/ha-adguard-clients`, catégorie **Intégration**.
-3. Installer « AdGuard Clients », puis redémarrer Home Assistant.
+Prérequis : Home Assistant **2026.10** ou plus récent.
+
+1. **Paramètres, Marketplace**, bouton **Ajouter grâce à un lien** en haut à droite, avec l'URL
+   `https://github.com/cesbron-dev/ha-adguard-clients` (avant Home Assistant 2026.11 : HACS,
+   menu en haut à droite, **Dépôts personnalisés**, catégorie **Intégration**).
+2. Installer « AdGuard Clients », puis redémarrer Home Assistant.
 
 ## Configuration
 
