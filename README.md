@@ -1,134 +1,135 @@
-# AdGuard Clients pour Home Assistant
+# AdGuard Clients for Home Assistant
 
-Intégration Home Assistant qui expose les **clients persistants** d'une ou plusieurs
-instances [AdGuard Home](https://github.com/AdguardTeam/AdGuardHome) : un appareil Home
-Assistant par client, avec ses réglages de filtrage et un switch par service bloqué
+**English** · [Français](README.fr.md)
+
+A Home Assistant integration that exposes the **persistent clients** of one or more
+[AdGuard Home](https://github.com/AdguardTeam/AdGuardHome) instances: one Home Assistant
+device per client, with its filtering settings and one switch per blocked service
 (YouTube, Roblox, TikTok…).
 
-L'intégration officielle `adguard` ne gère que les réglages globaux d'une instance. Celle-ci
-couvre ce qu'elle ne fait pas : bloquer un service pour **un client précis** (les appareils
-d'un enfant, par exemple), sans toucher au reste de la maison. Elle est testée avec AdGuard
-Home **v0.107.79**.
+The official `adguard` integration only handles the global settings of an instance. This one
+covers what it does not: blocking a service for **one specific client** (a child's devices,
+for example) without touching the rest of the home. It is tested with AdGuard Home
+**v0.107.79**.
 
-Elle sert aussi de brique au moteur [`ha-parental-control`](https://github.com/cesbron-dev/ha-parental-control),
-qui utilise le service `set_blocked_services` pour appliquer ses décisions.
+It is also a building block of the [`ha-parental-control`](https://github.com/cesbron-dev/ha-parental-control)
+engine, which uses the `set_blocked_services` action to apply its decisions.
 
-Distribuée sous [licence MIT](LICENSE). Textes de l'interface en français et en anglais.
+Released under the [MIT license](LICENSE). User interface in English and French.
 
-## Ce que l'intégration ne fait pas
+## What the integration does not do
 
-- Les réglages globaux de l'instance (protection, filtrage global, services bloqués globaux) :
-  l'intégration officielle `adguard` s'en charge.
-- Les clients « runtime » (vus seulement par IP, sans fiche persistante).
-- Créer, supprimer ou renommer un client, ou modifier ses identifiants : cela se fait dans AdGuard.
-- Les règles de filtrage personnalisées, les statistiques et le journal des requêtes.
-- Les horaires de services d'AdGuard (`blocked_services_schedule`) : ils ne sont **jamais
-  modifiés** et continuent de s'appliquer. L'intégration n'en tient pas compte.
+- Global instance settings (protection, global filtering, globally blocked services): the
+  official `adguard` integration handles them.
+- "Runtime" clients (only seen by IP, without a persistent client entry).
+- Creating, deleting or renaming a client, or changing its identifiers: do that in AdGuard.
+- Custom filtering rules, statistics and the query log.
+- AdGuard service schedules (`blocked_services_schedule`): they are **never modified** and
+  keep applying. The integration ignores them.
 
 ## Installation
 
-Prérequis : Home Assistant **2026.10** ou plus récent.
+Requires Home Assistant **2026.10** or later.
 
-1. **Paramètres, Marketplace**, bouton **Ajouter grâce à un lien** en haut à droite, avec l'URL
-   `https://github.com/cesbron-dev/ha-adguard-clients` (avant Home Assistant 2026.11 : HACS,
-   menu en haut à droite, **Dépôts personnalisés**, catégorie **Intégration**).
-2. Installer « AdGuard Clients », puis redémarrer Home Assistant.
+1. **Settings, Marketplace**, **Add from link** button at the top right, with the URL
+   `https://github.com/cesbron-dev/ha-adguard-clients` (before Home Assistant 2026.11: HACS,
+   top-right menu, **Custom repositories**, category **Integration**).
+2. Install "AdGuard Clients", then restart Home Assistant.
 
 ## Configuration
 
-**Paramètres, Appareils et services, Ajouter une intégration, AdGuard Clients.**
-Ajoutez **une entrée par instance AdGuard Home**, autant que nécessaire.
+**Settings, Devices & services, Add integration, AdGuard Clients.**
+Add **one entry per AdGuard Home instance**, as many as you need.
 
-| Champ | Description |
+| Field | Description |
 |---|---|
-| Nom de l'instance | Titre de l'entrée et de l'appareil de l'instance (ex. « AdGuard Main »). |
-| URL | Par exemple `https://adguard.example.lan` ou `http://192.168.1.2:3000`. |
-| Nom d'utilisateur / Mot de passe | Authentification HTTP basique d'AdGuard Home. |
-| Vérifier le certificat | À décocher pour un certificat auto-signé. |
+| Instance name | Title of the entry and of the instance device (e.g. "AdGuard Home"). |
+| URL | For example `https://adguard.example.lan` or `http://192.168.1.2:3000`. |
+| Username / Password | AdGuard Home HTTP basic authentication. |
+| Verify certificate | Uncheck for a self-signed certificate. |
 
-L'URL normalisée identifie l'instance : on ne peut pas l'ajouter deux fois. La
-ré-authentification (identifiants refusés) et la reconfiguration (changer l'URL ou les
-identifiants) sont proposées par Home Assistant.
+The normalized URL identifies the instance: it cannot be added twice. Home Assistant offers
+re-authentication (credentials rejected) and reconfiguration (change the URL or the
+credentials).
 
 ### Options
 
-Sur l'entrée, **Configurer** :
+On the entry, **Configure**:
 
-- **Services exposés comme switches** : sélection multiple dans le catalogue de l'instance.
-  Par défaut : `youtube`, `roblox`, `tiktok`, `netflix`, `disneyplus` et `twitch`, limités à
-  ceux qui existent dans le catalogue. Changer la liste recharge l'entrée ; les switches
-  retirés sont supprimés.
-- **Intervalle de rafraîchissement** : 30 s par défaut, de 10 à 3600 s.
+- **Services exposed as switches**: multiple selection from the instance catalog.
+  Default: `youtube`, `roblox`, `tiktok`, `netflix`, `disneyplus` and `twitch`, limited to
+  those that exist in the catalog. Changing the list reloads the entry; switches that were
+  removed are deleted.
+- **Refresh interval**: 30 s by default, from 10 to 3600 s.
 
-## Entités créées
+## Entities
 
-Chaque client persistant devient un appareil portant son nom AdGuard, rattaché à l'appareil
-de l'instance. Les entités sont nommées d'après le client (ex. le switch « Bloquer YouTube »
-de l'appareil « iPad Hugo »).
+Each persistent client becomes a device named after its AdGuard name, linked to the instance
+device. Entities are named after the client (e.g. the "Block YouTube" switch of the
+"Hugo's iPad" device).
 
-| Entité | Rôle |
+| Entity | Purpose |
 |---|---|
-| switch « Filtrage » | Filtrage du client. |
-| switch « Contrôle parental » | Contrôle parental d'AdGuard. |
-| switch « Navigation sécurisée » | Navigation sécurisée. |
-| switch « Recherche sécurisée » | Recherche sécurisée. |
-| switch « Utiliser les réglages globaux » | Catégorie configuration. |
-| switch « Utiliser les services bloqués globaux » | Catégorie configuration. |
-| switch « Bloquer *service* » | Un par service choisi ; **activé = bloqué**. |
-| capteur « Services bloqués » | Nombre de services bloqués. L'attribut `services` liste tous les ids bloqués (triés, y compris ceux sans switch) ; `ids`, `tags`, `adguard_name` et `use_global_blocked_services` y figurent aussi. |
+| switch "Filtering" | Client filtering. |
+| switch "Parental control" | AdGuard parental control. |
+| switch "Safe browsing" | Safe browsing. |
+| switch "Safe search" | Safe search. |
+| switch "Use global settings" | Configuration category. |
+| switch "Use global blocked services" | Configuration category. |
+| switch "Block *service*" | One per selected service; **on = blocked**. |
+| sensor "Blocked services" | Number of blocked services. The `services` attribute lists every blocked id (sorted, including those without a switch); `ids`, `tags`, `adguard_name` and `use_global_blocked_services` are attributes too. |
 
-L'appareil de l'instance porte un capteur binaire de diagnostic « Connecté ».
+The instance device has a "Connected" diagnostic binary sensor.
 
-### Quand les switches sont indisponibles
+### When switches are unavailable
 
-AdGuard ignore les réglages propres d'un client tant qu'il utilise les réglages globaux :
+AdGuard ignores a client's own settings while it uses the global ones:
 
-- Les switches de **services** sont indisponibles tant que « Utiliser les services bloqués
-  globaux » est activé.
-- Les switches de **réglages** (filtrage, contrôle parental, navigation et recherche
-  sécurisées) sont indisponibles tant que « Utiliser les réglages globaux » est activé.
+- **Service** switches are unavailable while "Use global blocked services" is on.
+- **Setting** switches (filtering, parental control, safe browsing and safe search) are
+  unavailable while "Use global settings" is on.
 
-Pour en sortir, **désactivez** le switch « Utiliser les … globaux » correspondant : il n'écrit que
-ce drapeau, la liste de services et les réglages gardés par AdGuard redeviennent applicables.
-Le service ci-dessous reste utilisable dans ce mode : il désactive lui-même l'option globale.
+To get out of it, **turn off** the matching "Use global …" switch: it only writes that flag,
+and the service list and settings kept by AdGuard apply again. The action below still works in
+this mode: it turns the global option off by itself.
 
-## Service `adguard_clients.set_blocked_services`
+## Action `adguard_clients.set_blocked_services`
 
-Bloque et débloque des services pour un client en **une seule écriture**. Le service désactive
-lui-même « services bloqués globaux ». Il accepte n'importe quel id du catalogue AdGuard, pas
-seulement ceux qui ont un switch.
+Blocks and unblocks services for a client in **a single write**. The action turns off "global
+blocked services" by itself. It accepts any id from the AdGuard catalog, not only those that
+have a switch.
 
-| Champ | Description |
+| Field | Description |
 |---|---|
-| `device_id` | L'appareil du client (obligatoire). |
-| `block` | Ids de services à bloquer (optionnel). |
-| `unblock` | Ids de services à débloquer (optionnel). |
+| `device_id` | The client device (required). |
+| `block` | Service ids to block (optional). |
+| `unblock` | Service ids to unblock (optional). |
 
-Le résultat est (services actuels ∪ `block`) − `unblock`. Un id présent dans `block` et
-`unblock`, ou absent du catalogue, est refusé et rien n'est écrit. Le service renvoie la liste
-relue après écriture.
+The result is (current services ∪ `block`) − `unblock`. An id that is in both `block` and
+`unblock`, or that is not in the catalog, is rejected and nothing is written. The action
+returns the list read back after the write.
 
 ```yaml
 action: adguard_clients.set_blocked_services
 data:
-  device_id: 0a1b2c3d4e5f60718293a4b5c6d7e8f9   # appareil « iPad Hugo »
+  device_id: 0a1b2c3d4e5f60718293a4b5c6d7e8f9   # "Hugo's iPad" device
   block: [youtube, roblox]
   unblock: [tiktok]
-response_variable: resultat
-# resultat.blocked_services -> ["roblox", "youtube"] (par exemple)
+response_variable: result
+# result.blocked_services -> ["roblox", "youtube"] (for example)
 ```
 
-## Fonctionnement et limites
+## How it works and limits
 
-- **Pas d'état optimiste** : un switch n'affiche que ce qui a été relu dans AdGuard. Chaque
-  écriture relit la fiche du client, la modifie, l'écrit entière (les autres champs sont
-  conservés) puis relit. Les écritures d'une instance sont sérialisées.
-- Un changement fait dans l'interface d'AdGuard apparaît au prochain rafraîchissement.
-- **Renommage** : renommer un client dans AdGuard garde son appareil et ses `entity_id` ; seul
-  le nom de l'appareil suit. Le rapprochement se fait par nom, puis par identifiants communs
-  avec un client présent à la lecture précédente (un nouveau client qui reprend l'IP d'un
-  client supprimé obtient donc son propre appareil).
-  En cas de doute, un nouvel appareil est créé plutôt que de réutiliser celui d'un autre.
-- Un client supprimé d'AdGuard rend ses entités indisponibles ; l'appareil se supprime à la main.
-- Les nouveaux clients apparaissent au rafraîchissement suivant.
-- Les horaires de services d'AdGuard ne sont pas gérés (voir plus haut).
+- **No optimistic state**: a switch only shows what was read back from AdGuard. Each write
+  reads the client entry, changes it, writes it whole (other fields are kept) and reads it
+  again. Writes to one instance are serialized.
+- A change made in the AdGuard interface shows up at the next refresh.
+- **Renaming**: renaming a client in AdGuard keeps its device and its `entity_id`s; only the
+  device name follows. Matching is done by name, then by identifiers shared with a client
+  present at the previous read (so a new client that takes over the IP of a deleted client
+  gets its own device). When in doubt, a new device is created rather than reusing another
+  client's.
+- A client deleted from AdGuard makes its entities unavailable; remove the device manually.
+- New clients appear at the next refresh.
+- AdGuard service schedules are not managed (see above).
