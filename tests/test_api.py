@@ -81,6 +81,6 @@ async def test_500_raises_adguard_error(hass, aioclient_mock):
 
 def test_normalize_url():
     assert (
-        normalize_url("HTTPS://AdGuard-bdx.home.cesbron.dev/")
-        == "https://adguard-bdx.home.cesbron.dev"
+        normalize_url("HTTPS://AdGuard.example.lan/")
+        == "https://adguard.example.lan"
     )

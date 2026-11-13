@@ -18,7 +18,7 @@ def fake_adguard() -> FakeAdGuard:
     """Faux AdGuard en mémoire avec deux clients."""
     return FakeAdGuard(
         clients=[
-            sample_client("iPad Gabin", ["192.168.0.50", "aa:bb:cc:dd:ee:01"]),
+            sample_client("iPad Hugo", ["192.168.0.50", "aa:bb:cc:dd:ee:01"]),
             sample_client("TV", ["192.168.0.60"]),
         ],
         catalog={

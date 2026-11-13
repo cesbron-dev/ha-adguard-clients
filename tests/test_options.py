@@ -16,7 +16,7 @@ from .test_coordinator import URL
 async def _setup_with(hass, options=None) -> MockConfigEntry:
     entry = MockConfigEntry(
         domain=DOMAIN,
-        title="AdGuard Bordeaux",
+        title="AdGuard Main",
         data={"url": URL, "username": "admin", "password": "x", "verify_ssl": True},
         options=options or {},
         unique_id=URL,

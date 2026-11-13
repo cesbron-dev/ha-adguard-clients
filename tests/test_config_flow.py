@@ -14,10 +14,10 @@ from custom_components.adguard_clients.api import (
 )
 from custom_components.adguard_clients.const import DOMAIN
 
-URL = "https://adguard-bdx.home.cesbron.dev"
+URL = "https://adguard.example.lan"
 USER_INPUT = {
-    "name": "AdGuard Bordeaux",
-    "url": "https://Adguard-bdx.home.cesbron.dev/",
+    "name": "AdGuard Main",
+    "url": "https://Adguard.example.lan/",
     "username": "admin",
     "password": "secret",
     "verify_ssl": True,
@@ -36,7 +36,7 @@ def _entry(**data) -> MockConfigEntry:
     base = {"url": URL, "username": "admin", "password": "old", "verify_ssl": True}
     base.update(data)
     return MockConfigEntry(
-        domain=DOMAIN, title="AdGuard Bordeaux", data=base, unique_id=base["url"]
+        domain=DOMAIN, title="AdGuard Main", data=base, unique_id=base["url"]
     )
 
 
@@ -54,7 +54,7 @@ async def test_user_flow_creates_entry(hass: HomeAssistant, patch_api) -> None:
         result["flow_id"], USER_INPUT
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["title"] == "AdGuard Bordeaux"
+    assert result["title"] == "AdGuard Main"
     assert result["data"] == {
         "url": URL,
         "username": "admin",

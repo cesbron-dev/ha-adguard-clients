@@ -16,13 +16,13 @@ from custom_components.adguard_clients.api import (
 from custom_components.adguard_clients.client_ops import with_setting
 from custom_components.adguard_clients.const import DOMAIN
 
-URL = "https://adguard-bdx.home.cesbron.dev"
+URL = "https://adguard.example.lan"
 
 
 async def _setup(hass: HomeAssistant) -> MockConfigEntry:
     entry = MockConfigEntry(
         domain=DOMAIN,
-        title="AdGuard Bordeaux",
+        title="AdGuard Main",
         data={"url": URL, "username": "admin", "password": "x", "verify_ssl": True},
         unique_id=URL,
     )
@@ -48,14 +48,14 @@ async def test_setup_creates_instance_device_and_uids(hass, patch_api) -> None:
     assert device is not None
     assert device.sw_version == "v0.107.0"
     assert device.manufacturer == "AdGuard Team"
-    assert device.name == "AdGuard Bordeaux"
+    assert device.name == "AdGuard Main"
 
 
 async def test_uids_persist_across_reload(hass, patch_api, hass_storage) -> None:
     entry = await _setup(hass)
     before = {u: f["name"] for u, f in entry.runtime_data.data.clients.items()}
     stored = hass_storage[f"adguard_clients.{entry.entry_id}"]["data"]["clients"]
-    assert {v["name"] for v in stored.values()} == {"iPad Gabin", "TV"}
+    assert {v["name"] for v in stored.values()} == {"iPad Hugo", "TV"}
     await hass.config_entries.async_reload(entry.entry_id)
     await hass.async_block_till_done()
     after = {u: f["name"] for u, f in entry.runtime_data.data.clients.items()}
@@ -65,12 +65,12 @@ async def test_uids_persist_across_reload(hass, patch_api, hass_storage) -> None
 async def test_rename_keeps_uid(hass, patch_api, fake_adguard) -> None:
     entry = await _setup(hass)
     coordinator = entry.runtime_data
-    uid = _uid_of(coordinator, "iPad Gabin")
-    fake_adguard.clients[0]["name"] = "iPad de Gabin"
+    uid = _uid_of(coordinator, "iPad Hugo")
+    fake_adguard.clients[0]["name"] = "iPad de Hugo"
     fake_adguard.clients[0]["ids"] = ["192.168.0.50"]
     await coordinator.async_refresh()
-    assert coordinator.data.clients[uid]["name"] == "iPad de Gabin"
-    assert coordinator.known[uid].name == "iPad de Gabin"
+    assert coordinator.data.clients[uid]["name"] == "iPad de Hugo"
+    assert coordinator.known[uid].name == "iPad de Hugo"
 
 
 async def test_absent_client_kept_in_known(hass, patch_api, fake_adguard) -> None:
@@ -86,13 +86,13 @@ async def test_absent_client_kept_in_known(hass, patch_api, fake_adguard) -> Non
 async def test_write_reads_fresh_and_keeps_fields(hass, patch_api, fake_adguard) -> None:
     entry = await _setup(hass)
     coordinator = entry.runtime_data
-    uid = _uid_of(coordinator, "iPad Gabin")
+    uid = _uid_of(coordinator, "iPad Hugo")
     fake_adguard.clients[0]["upstreams"] = ["1.1.1.1"]
     await coordinator.async_update_client(
         uid, lambda c: with_setting(c, "parental_enabled", True)
     )
     name, data = fake_adguard.updates[-1]
-    assert name == "iPad Gabin"
+    assert name == "iPad Hugo"
     assert data["upstreams"] == ["1.1.1.1"]
     assert data["parental_enabled"] is True
     assert coordinator.data.clients[uid]["parental_enabled"] is True
@@ -103,18 +103,18 @@ async def test_write_follows_rename_since_last_refresh(
 ) -> None:
     entry = await _setup(hass)
     coordinator = entry.runtime_data
-    uid = _uid_of(coordinator, "iPad Gabin")
-    fake_adguard.clients[0]["name"] = "iPad de Gabin"
+    uid = _uid_of(coordinator, "iPad Hugo")
+    fake_adguard.clients[0]["name"] = "iPad de Hugo"
     await coordinator.async_update_client(
         uid, lambda c: with_setting(c, "parental_enabled", True)
     )
-    assert fake_adguard.updates[-1][0] == "iPad de Gabin"
+    assert fake_adguard.updates[-1][0] == "iPad de Hugo"
 
 
 async def test_concurrent_writes_are_serialized(hass, patch_api, fake_adguard) -> None:
     entry = await _setup(hass)
     coordinator = entry.runtime_data
-    uid = _uid_of(coordinator, "iPad Gabin")
+    uid = _uid_of(coordinator, "iPad Hugo")
     await asyncio.gather(
         coordinator.async_update_client(uid, lambda c: {**c, "ignore_querylog": True}),
         coordinator.async_update_client(uid, lambda c: {**c, "ignore_statistics": True}),
@@ -216,7 +216,7 @@ async def test_deleted_client_ids_reused_gets_new_device(
 async def test_known_without_present_defaults_true(hass, patch_api, hass_storage) -> None:
     entry = MockConfigEntry(
         domain=DOMAIN,
-        title="AdGuard Bordeaux",
+        title="AdGuard Main",
         data={"url": URL, "username": "admin", "password": "x", "verify_ssl": True},
         unique_id=URL,
     )

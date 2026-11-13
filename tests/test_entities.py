@@ -37,7 +37,7 @@ async def _call(hass, service, eid):
     await hass.async_block_till_done()
 
 
-async def _ctx(hass, name="iPad Gabin"):
+async def _ctx(hass, name="iPad Hugo"):
     entry = await _setup(hass)
     return entry, _uid_of(entry.runtime_data, name)
 
@@ -59,7 +59,7 @@ async def test_client_devices_and_entities(hass, patch_api) -> None:
         ents = er.async_entries_for_device(entreg, d.id)
         assert len([e for e in ents if e.domain == "switch"]) == 6 + 6
         assert len([e for e in ents if e.domain == "sensor"]) == 1
-    assert {d.name for d in clients} == {"iPad Gabin", "TV"}
+    assert {d.name for d in clients} == {"iPad Hugo", "TV"}
 
 
 async def test_service_switch_state_and_toggle(hass, patch_api, fake_adguard) -> None:
@@ -126,7 +126,7 @@ async def test_sensor_attributes(hass, patch_api, fake_adguard) -> None:
     assert state.state == "3"
     assert state.attributes["services"] == ["discord", "tiktok", "youtube"]
     assert state.attributes["ids"] == ["192.168.0.50", "aa:bb:cc:dd:ee:01"]
-    assert state.attributes["adguard_name"] == "iPad Gabin"
+    assert state.attributes["adguard_name"] == "iPad Hugo"
     assert state.attributes["use_global_blocked_services"] is False
     assert state.attributes["tags"] == []
 
@@ -145,12 +145,12 @@ async def test_new_client_added_on_refresh(hass, patch_api, fake_adguard) -> Non
 async def test_rename_keeps_entity_and_updates_device_name(hass, patch_api, fake_adguard) -> None:
     entry, uid = await _ctx(hass)
     eid = _eid(hass, "switch", entry, uid, "filtering")
-    fake_adguard.clients[0]["name"] = "iPad de Gabin"
+    fake_adguard.clients[0]["name"] = "iPad de Hugo"
     await entry.runtime_data.async_refresh()
     await hass.async_block_till_done()
     assert _eid(hass, "switch", entry, uid, "filtering") == eid
     device = _dev(hass, entry, uid)
-    assert device.name == "iPad de Gabin"
+    assert device.name == "iPad de Hugo"
 
 
 async def test_absent_client_unavailable_and_removable(hass, patch_api, fake_adguard) -> None:
@@ -165,7 +165,7 @@ async def test_absent_client_unavailable_and_removable(hass, patch_api, fake_adg
     assert await async_remove_config_entry_device(hass, entry, device) is True
     instance = devreg.async_get_device_by_identifier((DOMAIN, entry.entry_id), entry.entry_id)
     assert await async_remove_config_entry_device(hass, entry, instance) is False
-    present = _uid_of(entry.runtime_data, "iPad Gabin")
+    present = _uid_of(entry.runtime_data, "iPad Hugo")
     dev2 = _dev(hass, entry, present)
     assert await async_remove_config_entry_device(hass, entry, dev2) is False
 

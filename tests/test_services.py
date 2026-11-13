@@ -22,7 +22,7 @@ async def _call(hass, device_id, **data):
 
 async def _ctx(hass):
     entry = await _setup(hass)
-    uid = _uid_of(entry.runtime_data, "iPad Gabin")
+    uid = _uid_of(entry.runtime_data, "iPad Hugo")
     return entry, uid, _dev(hass, entry, uid).id
 
 
