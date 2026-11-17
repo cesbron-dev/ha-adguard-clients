@@ -31,10 +31,12 @@ Distribuée sous [licence MIT](LICENSE). Textes de l'interface en français et e
 
 Prérequis : Home Assistant **2026.10** ou plus récent.
 
-1. **Paramètres, Marketplace**, bouton **Ajouter grâce à un lien** en haut à droite, avec l'URL
-   `https://github.com/cesbron-dev/ha-adguard-clients` (avant Home Assistant 2026.11 : HACS,
-   menu en haut à droite, **Dépôts personnalisés**, catégorie **Intégration**).
-2. Installer « AdGuard Clients », puis redémarrer Home Assistant.
+1. **Paramètres, Marketplace** : chercher « AdGuard Clients », l'installer, puis redémarrer
+   Home Assistant. Avant Home Assistant 2026.11, faire de même dans HACS.
+
+   S'il n'apparaît pas, ajouter le dépôt à la main : bouton **Ajouter grâce à un lien** en haut
+   à droite, avec l'URL `https://github.com/cesbron-dev/ha-adguard-clients` (avant 2026.11 :
+   HACS, menu en haut à droite, **Dépôts personnalisés**, catégorie **Intégration**).
 
 ## Configuration
 
