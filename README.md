@@ -31,10 +31,12 @@ Released under the [MIT license](LICENSE). User interface in English and French.
 
 Requires Home Assistant **2026.10** or later.
 
-1. **Settings, Marketplace**, **Add from link** button at the top right, with the URL
-   `https://github.com/cesbron-dev/ha-adguard-clients` (before Home Assistant 2026.11: HACS,
-   top-right menu, **Custom repositories**, category **Integration**).
-2. Install "AdGuard Clients", then restart Home Assistant.
+1. **Settings, Marketplace**: search for "AdGuard Clients", install it, then restart Home
+   Assistant. Before Home Assistant 2026.11, do the same in HACS.
+
+   If it does not show up, add the repository by hand: **Add from link** button at the top
+   right, with the URL `https://github.com/cesbron-dev/ha-adguard-clients` (before 2026.11:
+   HACS, top-right menu, **Custom repositories**, category **Integration**).
 
 ## Configuration
 
